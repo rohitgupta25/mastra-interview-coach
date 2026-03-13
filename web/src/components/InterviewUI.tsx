@@ -11,6 +11,23 @@ type InterviewQuestion = {
   hints?: string[];
   canonicalAnswer?: string;
   referenceSolution?: string;
+  debug?: {
+    generatedAt: string;
+    source: "llm" | "fallback";
+    fallbackReason?: string;
+    skillTrack: string;
+    difficulty: "easy" | "medium" | "hard";
+    preferredType: "theory" | "coding";
+    selectedTopic?: string;
+    trackKey: string;
+    roleBand: string;
+    yearsExperience: number;
+    mustIncludeEds: boolean;
+    llmAttempts: number;
+    topicHints: string[];
+    referenceHits: string[];
+    rejectionNotes: string[];
+  };
 };
 
 type FeedbackResult = {
@@ -39,6 +56,17 @@ function scoreTone(score?: number) {
   return "weak";
 }
 
+function formatFallbackReason(reason?: string) {
+  if (!reason) return "";
+  if (reason === "llm_disabled_missing_api_key") {
+    return "LLM generation is disabled because OPENAI_API_KEY is not configured.";
+  }
+  if (reason === "llm_unavailable_or_rejected") {
+    return "LLM generation was unavailable or all generated candidates were rejected, so fallback mode was used.";
+  }
+  return reason.replace(/_/g, " ");
+}
+
 export default function InterviewUI({ profile, level, onBackToProfile }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [question, setQuestion] = useState<InterviewQuestion | null>(null);
@@ -54,6 +82,8 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRunningCode, setIsRunningCode] = useState(false);
   const [isPreparingNextQuestion, setIsPreparingNextQuestion] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugCopyMessage, setDebugCopyMessage] = useState("");
 
   const profileSignature = useMemo(() => JSON.stringify(profile), [profile]);
 
@@ -131,6 +161,10 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
     void getQuestion();
   }, [sessionId, level]);
 
+  useEffect(() => {
+    setDebugCopyMessage("");
+  }, [question?.questionId]);
+
   const submitAnswer = async (text?: string) => {
     if (!sessionId || !question) return;
     const evaluationText = text ?? (question.type === "coding" ? codeText : answerText);
@@ -201,6 +235,20 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
     setAnswerText((prev) => (prev ? `${prev} ${text}` : text));
   };
 
+  const copyDebugPayload = async () => {
+    if (!question?.debug || !navigator?.clipboard?.writeText) {
+      setDebugCopyMessage("Clipboard is not available in this browser.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(question.debug, null, 2));
+      setDebugCopyMessage("Debug JSON copied.");
+    } catch {
+      setDebugCopyMessage("Copy failed.");
+    }
+  };
+
   const revealedAnswer = question ? (question.referenceSolution ?? question.canonicalAnswer ?? "") : "";
 
   return (
@@ -248,6 +296,15 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
             >
               {showAnswerKey ? "Hide Answer" : "Show Answer"}
             </button>
+            {question.debug && (
+              <button
+                className="btn btn--subtle"
+                onClick={() => setShowDebug((prev) => !prev)}
+                disabled={isFetchingQuestion || isPreparingNextQuestion}
+              >
+                {showDebug ? "Hide Debug" : "Debug"}
+              </button>
+            )}
             {showAnswerKey && (
               <button
                 className="btn btn--secondary"
@@ -258,10 +315,90 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
               </button>
             )}
           </div>
+          {question.debug?.fallbackReason === "llm_disabled_missing_api_key" && (
+            <div className="debug-banner">
+              LLM generation is disabled because `OPENAI_API_KEY` is not configured. This question is coming from fallback mode.
+            </div>
+          )}
           {showAnswerKey && (
             <div className="correction-block">
               <h4>Answer</h4>
-              <p>{revealedAnswer || "Answer not available for this question."}</p>
+              {question.type === "coding" ? (
+                <pre className="run-output">{revealedAnswer || "Answer not available for this question."}</pre>
+              ) : (
+                <p>{revealedAnswer || "Answer not available for this question."}</p>
+              )}
+            </div>
+          )}
+          {showDebug && question.debug && (
+            <div className="debug-panel">
+              <div className="panel-head panel-head--compact">
+                <div>
+                  <h4>Question Debug</h4>
+                  <p className="debug-copy">{question.debug.generatedAt}</p>
+                </div>
+                <button className="btn btn--subtle" onClick={() => void copyDebugPayload()}>
+                  Copy Debug JSON
+                </button>
+              </div>
+
+              <div className="debug-grid">
+                <div className="debug-chip">
+                  <strong>Source</strong>
+                  <span>{question.debug.source}</span>
+                </div>
+                <div className="debug-chip">
+                  <strong>Difficulty</strong>
+                  <span>{question.debug.difficulty}</span>
+                </div>
+                <div className="debug-chip">
+                  <strong>Preferred Type</strong>
+                  <span>{question.debug.preferredType}</span>
+                </div>
+                <div className="debug-chip">
+                  <strong>Skill Track</strong>
+                  <span>{question.debug.skillTrack}</span>
+                </div>
+                <div className="debug-chip">
+                  <strong>Topic</strong>
+                  <span>{question.debug.selectedTopic || "n/a"}</span>
+                </div>
+                <div className="debug-chip">
+                  <strong>LLM Attempts</strong>
+                  <span>{question.debug.llmAttempts}</span>
+                </div>
+              </div>
+
+              {question.debug.fallbackReason && (
+                <p className="debug-copy">
+                  <strong>Fallback Reason:</strong> {formatFallbackReason(question.debug.fallbackReason)}
+                </p>
+              )}
+
+              {!!question.debug.rejectionNotes.length && (
+                <div className="debug-section">
+                  <h4>Rejection Notes</h4>
+                  <ul className="debug-list">
+                    {question.debug.rejectionNotes.map((note, index) => (
+                      <li key={`${note}-${index}`}>{note}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {!!question.debug.referenceHits.length && (
+                <div className="debug-section">
+                  <h4>Reference Hits</h4>
+                  <ul className="debug-list">
+                    {question.debug.referenceHits.map((hit, index) => (
+                      <li key={`${hit}-${index}`}>{hit}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <pre className="debug-json">{JSON.stringify(question.debug, null, 2)}</pre>
+              {debugCopyMessage && <p className="debug-copy">{debugCopyMessage}</p>}
             </div>
           )}
 
@@ -337,7 +474,11 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
 
           <div className="correction-block">
             <h4>Improved Answer</h4>
-            <p>{feedback.correction ?? "No correction returned."}</p>
+            {question?.type === "coding" ? (
+              <pre className="run-output">{feedback.correction ?? "No correction returned."}</pre>
+            ) : (
+              <p>{feedback.correction ?? "No correction returned."}</p>
+            )}
           </div>
 
           <div className="action-row action-row--spaced">

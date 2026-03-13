@@ -5,10 +5,34 @@ import { json } from "body-parser";
 import axios from "axios";
 import type { NextFunction, Request, Response } from "express";
 import { createMastraServer } from "./mastra";
+import fs from "node:fs";
 import path from "path";
 import { getReferenceSyncStatus, syncInterviewReferences } from "./resources/referenceSync";
 
-dotenv.config();
+function loadEnvFiles() {
+  const candidateDirs = [
+    process.cwd(),
+    path.resolve(__dirname, ".."),
+    path.resolve(__dirname, "../.."),
+  ];
+  const uniqueDirs = [...new Set(candidateDirs.map((dir) => path.resolve(dir)))];
+
+  for (const dir of uniqueDirs) {
+    const envPath = path.join(dir, ".env");
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath });
+    }
+  }
+
+  for (const dir of uniqueDirs) {
+    const envLocalPath = path.join(dir, ".env.local");
+    if (fs.existsSync(envLocalPath)) {
+      dotenv.config({ path: envLocalPath, override: true });
+    }
+  }
+}
+
+loadEnvFiles();
 
 const app = express();
 app.use(cors());

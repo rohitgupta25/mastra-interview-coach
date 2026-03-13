@@ -9,8 +9,30 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const body_parser_1 = require("body-parser");
 const axios_1 = __importDefault(require("axios"));
 const mastra_1 = require("./mastra");
+const node_fs_1 = __importDefault(require("node:fs"));
+const path_1 = __importDefault(require("path"));
 const referenceSync_1 = require("./resources/referenceSync");
-dotenv_1.default.config();
+function loadEnvFiles() {
+    const candidateDirs = [
+        process.cwd(),
+        path_1.default.resolve(__dirname, ".."),
+        path_1.default.resolve(__dirname, "../.."),
+    ];
+    const uniqueDirs = [...new Set(candidateDirs.map((dir) => path_1.default.resolve(dir)))];
+    for (const dir of uniqueDirs) {
+        const envPath = path_1.default.join(dir, ".env");
+        if (node_fs_1.default.existsSync(envPath)) {
+            dotenv_1.default.config({ path: envPath });
+        }
+    }
+    for (const dir of uniqueDirs) {
+        const envLocalPath = path_1.default.join(dir, ".env.local");
+        if (node_fs_1.default.existsSync(envLocalPath)) {
+            dotenv_1.default.config({ path: envLocalPath, override: true });
+        }
+    }
+}
+loadEnvFiles();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use((0, body_parser_1.json)({ limit: "5mb" }));

@@ -83,6 +83,7 @@ p {
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .hero-card {
@@ -145,6 +146,7 @@ p {
   margin-top: 1rem;
   display: grid;
   gap: 1.4rem;
+  min-width: 0;
 }
 
 .panel {
@@ -153,6 +155,7 @@ p {
   border-radius: 20px;
   padding: 1.15rem;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
 
 .panel-head {
@@ -161,6 +164,7 @@ p {
   align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.9rem;
+  min-width: 0;
 }
 
 .panel-head--compact {
@@ -391,6 +395,7 @@ p {
   white-space: pre-wrap;
   line-height: 1.65;
   color: #223658;
+  overflow-wrap: anywhere;
 }
 
 .question-copy {
@@ -478,6 +483,9 @@ p {
 
 .run-output {
   margin-top: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: #0f2446;
   border-radius: 12px;
   color: #cde2ff;
@@ -485,8 +493,12 @@ p {
   font-size: 0.83rem;
   line-height: 1.5;
   max-height: 220px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   padding: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .feedback-panel h4 {
@@ -500,6 +512,101 @@ p {
   border: 1px solid #d3e1f8;
   background: #f5f8ff;
   padding: 0.8rem;
+  min-width: 0;
+}
+
+.debug-panel {
+  margin-top: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid #d7e2f5;
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f6ff 100%);
+  padding: 0.9rem;
+  min-width: 0;
+}
+
+.debug-banner {
+  margin-top: 0.25rem;
+  margin-bottom: 0.85rem;
+  border-radius: 12px;
+  border: 1px solid #ffd7aa;
+  background: #fff6eb;
+  color: #8a5600;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.debug-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+  min-width: 0;
+}
+
+.debug-chip {
+  border-radius: 12px;
+  border: 1px solid #d7e2f5;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.65rem 0.75rem;
+  min-width: 0;
+}
+
+.debug-chip strong {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5f7595;
+  margin-bottom: 0.2rem;
+}
+
+.debug-chip span {
+  display: block;
+  color: #1d3357;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.debug-section {
+  margin-top: 0.8rem;
+}
+
+.debug-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.15rem;
+  color: #274062;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.debug-json {
+  margin: 0.8rem 0 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background: #102448;
+  border-radius: 12px;
+  color: #cfe1ff;
+  border: 1px solid #1c3f75;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  max-height: 260px;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.debug-copy {
+  margin-top: 0.55rem;
+  color: #5f7595;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .score-pill {
@@ -586,6 +693,7 @@ p {
   font-size: 0.81rem;
   color: #3f5b80;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .reveal {
