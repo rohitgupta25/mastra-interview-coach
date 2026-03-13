@@ -1,0 +1,15 @@
+{
+  "name": "mastra-interview-coach-monorepo",
+  "private": true,
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "install:all": "pnpm -w install",
+    "dev:web": "pnpm --filter web dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter web dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "pnpm": "^8.0.0"
+  }
+}
