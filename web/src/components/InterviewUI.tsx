@@ -298,7 +298,7 @@ export default function InterviewUI({ profile, level, onBackToProfile }: Props) 
             </button>
             {question.debug && (
               <button
-                className="btn btn--subtle"
+                className="btn btn--subtle btn--debug"
                 onClick={() => setShowDebug((prev) => !prev)}
                 disabled={isFetchingQuestion || isPreparingNextQuestion}
               >

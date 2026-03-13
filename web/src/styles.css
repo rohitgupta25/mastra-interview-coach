@@ -365,6 +365,10 @@ p {
   border: 1px solid #ccdbf8;
 }
 
+.btn--debug {
+  display: none;
+}
+
 .btn--listening {
   background: #ebfff9;
   color: #08634b;
