@@ -1329,25 +1329,44 @@ async function generateQuestionWithLLM(input: {
     throw new Error("OPENAI_API_KEY is missing.");
   }
 
-  const model = (process.env.QUESTION_GEN_MODEL || "gpt-4o-mini").trim();
+  const model = (process.env.QUESTION_GEN_MODEL || "gpt-4.1").trim();
 
   const system = [
-    "You generate interview questions for frontend roles.",
-    "Output ONLY valid JSON, no markdown.",
-    "Never include role names in question text.",
-    "Never append skill-stack lists in parentheses.",
-    "canonicalAnswer must be the direct answer to the question, never answer-writing advice or evaluation rubric.",
-    "Never use phrases like 'a strong answer should', 'the candidate should', or 'the answer should'.",
-    "Never mention synced resources, references, PDFs, or source context in question text or hints.",
-    "Question must be NEW and not semantically similar to recent signatures.",
-    "Do not reuse any topic listed in recentCoreTopicsToAvoid.",
-    "For JavaScript/React focus, prioritize core fundamentals over generic architecture prompts.",
-    "When focusSkill is JavaScript or React, select one topic from topicHints and make it the main question focus.",
-    "If type is coding, use a single pure function task (no classes, no async, no DOM) so automated tests can run.",
-    "For hard difficulty with senior experience, coding tasks must be senior-level data, state, or dependency problems, not toy string or array utilities.",
-    "If Adobe Commerce/EDS is relevant, include Drop-ins and Preact expectations explicitly.",
-    "Respect requested difficulty exactly.",
-  ].join(" ");
+      "You are a senior frontend technical interviewer creating high-quality interview questions.",
+      "You generate ONE interview question at a time.",
+      "Return ONLY valid JSON. Do not include markdown, explanations, or extra text.",
+      "The output MUST strictly match the schema provided by the user.",
+      "The question must be original and not semantically similar to recentQuestionSignaturesToAvoid.",
+      "Do NOT include role names in the question text.",
+      "Do NOT append skill stacks in parentheses.",
+      "Do NOT reference PDFs, synced documents, sources, or context.",
+      "canonicalAnswer must directly answer the question.",
+      "canonicalAnswer must NOT contain evaluation advice.",
+      "Do NOT write phrases like 'a strong answer should', 'the candidate should', or 'the answer should'.",
+      "For theory questions:",
+      "- Focus on deep understanding of JavaScript, React, browser behavior, rendering, state management, or performance.",
+      "For coding questions:",
+      "- Create a single pure function.",
+      "- No classes.",
+      "- No async.",
+      "- No DOM APIs.",
+      "- Deterministic input/output so tests can run automatically.",
+      "For senior difficulty coding questions:",
+      "- Focus on data flow, dependency resolution, state modeling, memoization, diffing logic, or caching.",
+      "- Avoid trivial utilities like reversing strings or flattening arrays.",
+      "If focusSkill is JavaScript or React:",
+      "- Select ONE topic from topicHints.",
+      "- The entire question must revolve around that topic.",
+      "If mustIncludeEds is true:",
+      "- Assume Adobe Commerce Drop-ins architecture.",
+      "- Assume Preact instead of React.",
+      "Difficulty guidelines:",
+      "easy → basic fundamentals.",
+      "medium → practical engineering reasoning.",
+      "hard → deep runtime mechanics or complex state/data problems.",
+      "If Adobe Commerce/EDS is relevant, include Drop-ins and Preact expectations explicitly.",
+      "Respect the requested difficulty exactly."
+  ].join("\n");
 
   const userPayload = {
     freshnessSeed: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -1366,16 +1385,16 @@ async function generateQuestionWithLLM(input: {
       title: "string",
       type: "'theory' | 'coding'",
       questionText: "string",
-      hints: ["string", "string"],
-      canonicalAnswer: "string",
-      referenceSolution: "string (required if coding)",
+      hints: "array of short hint strings",
+      canonicalAnswer: "direct factual answer",
+      referenceSolution: "required if type is coding",
       codingSpec: {
-        functionName: "string (required if coding)",
+        functionName: "required if coding",
         tests: [
           {
             description: "string",
-            args: ["json serializable arguments"],
-            expected: "json serializable expected value"
+            args: "array of JSON serializable values",
+            expected: "JSON serializable value"
           }
         ]
       }
@@ -1386,7 +1405,7 @@ async function generateQuestionWithLLM(input: {
     "https://api.openai.com/v1/chat/completions",
     {
       model,
-      temperature: 0.95,
+      temperature: 0.35,
       messages: [
         { role: "system", content: system },
         { role: "user", content: JSON.stringify(userPayload) },

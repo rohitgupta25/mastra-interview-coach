@@ -141,15 +141,6 @@ exports.INTERVIEW_REFERENCE_DOCS = [
         content: "Storefront creation flow includes generating a repo from the Commerce boilerplate template, linking repo and commerce data, initializing content, and configuring local development.",
     },
     {
-        id: "web-create-storefront-steps",
-        sourceType: "web",
-        title: "Create a storefront - setup workflow",
-        sourceLabel: "Adobe Experience League",
-        url: "https://experienceleague.adobe.com/developer/commerce/storefront/get-started/create-storefront/",
-        tags: ["sidekick", "code-sync", "helix", "da-live", "local-dev"],
-        content: "Key workflow steps: create site repo, install code sync app, link repo to data via config, initialize content in da.live, install Sidekick, and run local development.",
-    },
-    {
         id: "web-boilerplate-terminology",
         sourceType: "web",
         title: "Boilerplate terminology for drop-ins and blocks",
